@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Currency {
+  DOLAR
+  REAL
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  name        String
+  description String
+  currency    Currency  @default(DOLAR)
+  price       Int
+  image       Image?    @relation(fields: [imageId], references: [id])
+  imageId     String?
+  customer    User?     @relation(fields: [customerId], references: [id])
+  customerId  String?
+  Company     Company   @relation(fields: [companyId], references: [id])
+  companyId   String
+  comments    Comment[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Company {
+  id             String    @id @default(uuid())
+  name           String
+  email          String
+  adress         Adress    @relation(fields: [adressId], references: [id])
+  profileImage   Image?    @relation(fields: [profileImageId], references: [id])
+  profileImageId String?
+  adressId       String
+  owner          User      @relation(fields: [ownerId], references: [id])
+  ownerId        String
+  admins         User[]    @relation(name: "admins")
+  products       Product[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model User {
+  id                      String    @id @default(uuid())
+  username                String    @unique
+  firstname               String
+  lastname                String
+  email                   String    @unique
+  password                String
+  profileImage            Image?    @relation(fields: [profileImageId], references: [id])
+  profileImageId          String?
+  adress                  Adress?   @relation(fields: [adressId], references: [id])
+  adressId                String?
+  Cart                    Product[]
+  Comment                 Comment[]
+  OwnedCompanies          Company[]
+  CompaniesAdministrating Company[] @relation(name: "admins")
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+}
+
+model Image {
+  id        String    @id @default(uuid())
+  data      Bytes?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Product   Product[]
+  User      User[]
+  Company   Company[]
+}
+
+model Comment {
+  id        String  @id @default(uuid())
+  author    User    @relation(fields: [authorId], references: [id])
+  authorId  String
+  Product   Product @relation(fields: [productId], references: [id])
+  productId String
+}
+
+model Adress {
+  id         String    @id @default(uuid())
+  adressHash String    @unique
+  zip        String
+  street     String
+  number     String
+  city       String
+  state      String
+  country    String
+  Company    Company[]
+  User       User[]
+}
